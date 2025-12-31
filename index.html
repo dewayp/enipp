@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Anniversary Rosita 💖</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Caveat:wght@700&display=swap"
+        rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            margin: 0;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 24px;
+        }
+
+        .handwriting {
+            font-family: 'Caveat', cursive;
+        }
+
+        .hidden-section {
+            display: none !important;
+        }
+
+        #transition-overlay {
+            position: fixed;
+            inset: 0;
+            background: black;
+            z-index: 9999;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.7s ease;
+        }
+
+        .glow-photo {
+            box-shadow: 0 0 35px 10px rgba(236, 72, 153, 0.6);
+            border: 3px solid #ec4899;
+        }
+
+        /* 3D Card Flip */
+        .flip-card {
+            perspective: 1000px;
+            height: 240px;
+        }
+
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.8s;
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+
+        .flipped .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .flip-card-front,
+        .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 18px;
+            overflow: hidden;
+        }
+
+        .flip-card-back {
+            background: linear-gradient(135deg, #be185d, #7e22ce);
+            transform: rotateY(180deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .btn-quiz {
+            width: 240px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* Floating Background Photos */
+        #section-final {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .floating-photo {
+            position: absolute;
+            bottom: -200px;
+            width: 110px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 12px;
+            opacity: 0.25;
+            filter: grayscale(20%) blur(0.5px);
+            z-index: 0;
+            pointer-events: none;
+            animation: floatUp linear forwards;
+        }
+
+        @keyframes floatUp {
+            to {
+                transform: translateY(-130vh) rotate(15deg);
+                opacity: 0;
+            }
+        }
+
+        .final-content {
+            position: relative;
+            z-index: 10;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="transition-overlay"></div>
+
+    <audio id="audio-main" src="music/bgm-main.mp3" loop></audio>
+    <audio id="audio-quiz" src="music/bgm-quiz.mp3" loop></audio>
+    <audio id="sfx-confetti" src="music/sfx-confetti.mp3"></audio>
+    <audio id="sfx-unlock" src="music/unlock.mp3"></audio>
+    <audio id="sfx-pop" src="music/sfx-pop.mp3"></audio>
+
+    <div id="custom-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 hidden px-4">
+        <div class="glass p-8 max-w-sm w-full text-center space-y-5 border-pink-500/50 border shadow-2xl">
+            <div id="modal-icon" class="text-5xl">✨</div>
+            <h3 id="modal-title" class="text-xl font-bold">Pesan</h3>
+            <p id="modal-message" class="text-gray-300"></p>
+            <button id="modal-btn" onclick="closeModal()"
+                class="bg-pink-600 hover:bg-pink-700 text-white px-8 py-3 rounded-full w-full font-semibold transition-transform active:scale-95">
+                Oke Sayang ❤️
+            </button>
+        </div>
+    </div>
+
+    <div id="modal-ganteng" class="fixed inset-0 z-[101] flex items-center justify-center bg-black/90 hidden px-4">
+        <div
+            class="glass p-10 max-w-sm w-full text-center space-y-6 border-pink-500 shadow-[0_0_50px_rgba(236,72,153,0.3)]">
+            <h3 class="text-2xl font-bold text-pink-400 italic">Hehe, Terbukti! 😂</h3>
+            <div class="flex justify-center">
+                <img src="img/dewa.jpeg" alt="Foto Dewa" class="w-44 h-44 object-cover rounded-full glow-photo">
+            </div>
+            <p class="text-gray-200">"Pilihan yang sangat jujur. Ini kuncinya..."</p>
+            <button onclick="takeKey()"
+                class="bg-pink-600 hover:bg-pink-700 text-white px-8 py-4 rounded-full w-full font-bold animate-bounce shadow-lg shadow-pink-600/40">
+                AMBIL KUNCI 🔑
+            </button>
+        </div>
+    </div>
+
+    <main class="w-full max-w-4xl px-6 py-12 flex justify-center items-center min-h-screen">
+
+        <section id="section-intro" class="glass p-10 w-full max-w-md text-center space-y-8">
+            <h1 class="text-4xl font-bold text-white leading-tight">Halo Sayangku,<br>Rosita 💖</h1>
+            <p class="text-gray-300">Ini aku buat spesial buat kamu, dibuka yaa</p>
+            <p class="handwriting text-4xl text-pink-400">— mas DEWA</p>
+            <button onclick="startApp()"
+                class="bg-pink-600 px-12 py-4 rounded-full font-bold hover:scale-105 transition-all shadow-lg shadow-pink-600/30">
+                Buka ✨
+            </button>
+        </section>
+
+        <section id="section-gift" class="hidden-section glass p-10 w-full max-w-md text-center space-y-8">
+            <h2 id="gift-text" class="text-2xl font-semibold">Tap kadonya ya ❤️</h2>
+            <div id="gift-box" onclick="handleGiftTap()"
+                class="text-[130px] cursor-pointer hover:scale-110 transition-transform active:scale-90 select-none">🎁
+            </div>
+            <p id="gift-hint" class="text-pink-400 opacity-0 italic font-medium">Loh kok gabisa kebuka yaa, coba tap
+                lagi</p>
+        </section>
+
+        <section id="section-quiz" class="hidden-section glass p-8 w-full max-w-md space-y-8">
+            <div class="flex justify-between items-center border-b border-white/20 pb-4">
+                <span id="lives-display" class="text-2xl">❤️❤️❤️</span>
+                <span class="text-xs tracking-widest text-pink-300 font-bold uppercase">Love Quiz Mode</span>
+            </div>
+            <div id="quiz-content" class="min-h-[380px] flex flex-col justify-center items-center relative"></div>
+        </section>
+
+        <section id="section-story" class="hidden-section w-full space-y-10">
+            <div class="text-center">
+                <h2 class="text-4xl font-bold text-white">Memori Kita ✨</h2>
+                <p class="text-pink-300 mt-2 font-medium">Klik fotonya satu-persatu ya!</p>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-6" id="gallery-grid"></div>
+            <div class="flex justify-center pt-8">
+                <button onclick="changeSection('section-letter')"
+                    class="bg-pink-600 px-10 py-4 rounded-full hidden shadow-xl font-bold" id="btn-to-letter">Lanjut
+                    💌</button>
+            </div>
+        </section>
+
+        <section id="section-letter" class="hidden-section glass p-10 max-w-2xl w-full">
+            <h2 class="text-3xl font-bold mb-6 handwriting text-pink-400 border-b border-pink-500/30 pb-4">Surat Untuk
+                Kamu 💌</h2>
+            <div id="letter-text" class="leading-relaxed text-lg text-gray-200 min-h-[250px] whitespace-pre-line"></div>
+            <div class="mt-10 flex justify-center">
+                <button id="btn-to-final" onclick="changeSection('section-final')"
+                    class="bg-pink-600 px-10 py-4 rounded-full opacity-0 transition-opacity duration-1000 font-bold">Ayo
+                    pencet ini 💖</button>
+            </div>
+        </section>
+
+        <section id="section-final"
+            class="hidden-section text-center min-h-screen flex flex-col justify-center items-center w-full">
+            <div id="floating-container" class="absolute inset-0 overflow-hidden"></div>
+
+            <div class="final-content space-y-10 px-6">
+                <h1 class="text-5xl md:text-7xl font-bold text-pink-500 drop-shadow-[0_0_15px_rgba(236,72,153,0.5)]">
+                    Happy Anniversary! 💖</h1>
+                <div class="grid grid-cols-3 gap-4 max-w-lg mx-auto">
+                    <div class="glass p-5 border-pink-500/20">
+                        <div id="days-count" class="text-4xl font-bold font-mono">0</div>
+                        <div class="text-[10px] text-pink-400 font-bold mt-1">HARI</div>
+                    </div>
+                    <div class="glass p-5 border-pink-500/20">
+                        <div id="hours-count" class="text-4xl font-bold font-mono">0</div>
+                        <div class="text-[10px] text-pink-400 font-bold mt-1">JAM</div>
+                    </div>
+                    <div class="glass p-5 border-pink-500/20">
+                        <div id="seconds-count" class="text-4xl font-bold font-mono">0</div>
+                        <div class="text-[10px] text-pink-400 font-bold mt-1">DETIK</div>
+                    </div>
+                </div>
+                <div class="space-y-8 pt-6">
+                    <p class="text-4xl md:text-6xl handwriting text-white">"I Love You Sayanggg ❤️"</p>
+                    <button onclick="sparkleLove()"
+                        class="bg-gradient-to-r from-pink-600 to-purple-600 px-12 py-6 rounded-full font-bold text-2xl hover:scale-110 transition-transform shadow-[0_0_30px_rgba(236,72,153,0.4)] active:scale-95">
+                        PENCET INI 💖
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // --- DATA KONFIGURASI ---
+        const annivDate = new Date("2023-03-01");
+        let lives = 3, giftTaps = 0, currentQuestion = 0, viewedPhotos = new Set();
+        let lastFlippedCard = null; // Melacak kartu yang sedang terbuka
+
+        const mainBgm = document.getElementById('audio-main');
+        const quizBgm = document.getElementById('audio-quiz');
+        const sfxPop = document.getElementById('sfx-pop');
+        const sfxUnlock = document.getElementById('sfx-unlock');
+        const sfxConfetti = document.getElementById('sfx-confetti');
+
+        function playSfx(audio) { audio.currentTime = 0; audio.play(); }
+
+        const questions = [
+            { q: "Tanggal anniversary kita?", a: ["1 Maret", "2 Maret", "10 Maret", "15 Maret"], correct: 0 },
+            { q: "Panggilan kesayangan kamu?", a: ["Tempe", "Kanre Jawa", "Palubasa", "Gundul"], correct: 3 },
+            { q: "Apakah mas dewa ganteng?", a: ["JELEK", "GANTENG SEKALI"], correct: 1 }
+        ];
+
+        const stories = [
+            { img: "img/foto-1.jpg", text: "ini foto yang paling aku suka karena kamu cantik dan peluk aku bwangetttt, jadi pengen ke nipah lagi" },
+            { img: "img/foto-2.jpeg", text: "ini foto waktu kita berjuang untuk kelahiran aco, seru, lucu, aku seneng menghabiskan waktu bareng kamu" },
+            { img: "img/foto-3.jpeg", text: "ini foto bikin aku merasa tenang, kamu nemenin aku ke kampus, semoga kamu selalu jadi bagian dari diriku hingga akhir" },
+            { img: "img/foto-4.jpeg", text: "ini foto mengkeceee, ayoo CFD lagi yaakkk" },
+            { img: "img/foto-5.jpeg", text: "ini foto di tempat yang sebenernya aku gasuka karena gasehat, tapi kamu suka banget sama sebwlakkkkk" },
+            { img: "img/foto-6.jpeg", text: "ini foto juga di tempat paporitmu yang mahal, tapi aku kalo punya duid ga akan ragu ajak kamu kesini lagii, semoga lancar rezeki yaaa" }
+        ];
+
+        const longLetter = `Halo gundul, sayangku, cintaku, cantikkuuuu
+Hepii enipp ya ayanggggg, maaf ya sering bikin kamu jengkel, maaf sering menyusahkanmu, maaf selalu meletakanmu disituasi yang tidak baik... :"(
+
+Makasih udah bertahan buat akuuuuu disini, makasih udah mau berjuang untuk hubungan ini, hubungan ini sudah cukup panjang untuk kita jalani dan tentunya kita harus memperjuangkan ini.
+
+Semoga hubungan ini senantiasa baik tanpa ada orang lain dan tanpa menyakiti satu sama lain.
+
+Semoga kita berdua selalu diberi kesehatan hingga hari tua nanti, I love u sayangkuuuuuuu. makasih ya udah baca ini semua dan menikmati apa yang aku bikin. I love u cantikkkk`;
+
+        // --- CORE FUNCTIONS ---
+        function startApp() {
+            let elem = document.documentElement;
+            if (elem.requestFullscreen) { elem.requestFullscreen(); }
+            else if (elem.webkitRequestFullscreen) { elem.webkitRequestFullscreen(); }
+            else if (elem.msRequestFullscreen) { elem.msRequestFullscreen(); }
+
+            mainBgm.volume = 0.5;
+            mainBgm.play();
+            changeSection('section-gift');
+        }
+
+        function changeSection(id) {
+            const overlay = document.getElementById('transition-overlay');
+            overlay.style.opacity = '1'; overlay.style.pointerEvents = 'all';
+
+            setTimeout(() => {
+                document.querySelectorAll('section').forEach(s => s.classList.add('hidden-section'));
+                document.getElementById(id).classList.remove('hidden-section');
+
+                if (id === 'section-quiz') { mainBgm.pause(); quizBgm.play(); }
+                if (id === 'section-story') { quizBgm.pause(); mainBgm.play(); }
+
+                if (id === 'section-letter') startTyping();
+                if (id === 'section-final') startCounter();
+
+                overlay.style.opacity = '0'; overlay.style.pointerEvents = 'none';
+            }, 750);
+        }
+
+        function openModal(title, msg, icon = '💖', btnText = "Oke Sayang ❤️", callback = closeModal) {
+            playSfx(sfxPop);
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-message').innerText = msg;
+            document.getElementById('modal-icon').innerText = icon;
+            const btn = document.getElementById('modal-btn');
+            btn.innerText = btnText; btn.onclick = callback;
+            document.getElementById('custom-modal').classList.remove('hidden');
+        }
+
+        function closeModal() { document.getElementById('custom-modal').classList.add('hidden'); }
+
+        function handleGiftTap() {
+            giftTaps++;
+            const gift = document.getElementById('gift-box');
+            gift.classList.add('animate-pulse');
+            setTimeout(() => gift.classList.remove('animate-pulse'), 400);
+
+            if (giftTaps === 4) {
+                document.getElementById('gift-hint').style.opacity = '1';
+                openModal("Terkunci! 🔒", "Sepertinya kamu perlu kunci untuk membukanya, selesaikan quiz dulu yaaa 🔑", "🗝️", "Selesaikan Quiz", () => {
+                    closeModal(); changeSection('section-quiz'); renderQuiz();
+                });
+            }
+        }
+
+        function renderQuiz() {
+            const container = document.getElementById('quiz-content');
+            const q = questions[currentQuestion];
+            container.innerHTML = `
+                <h3 class="text-2xl font-bold text-white mb-10 text-center px-4 leading-relaxed">${q.q}</h3>
+                <div class="flex flex-col gap-5 items-center justify-center w-full min-h-[250px] relative">
+                    ${q.a.map((opt, i) => `
+                        <button id="opt-${i}" onclick="handleAnswer(${i})" 
+                        class="btn-quiz glass bg-white/10 hover:bg-pink-600/40 rounded-2xl font-bold border border-white/10 ${currentQuestion === 2 ? 'absolute transition-all duration-300' : ''}"
+                        ${currentQuestion === 2 ? `style="top: ${i === 0 ? '40px' : '130px'}"` : ''}>${opt}</button>
+                    `).join('')}
+                </div>`;
+        }
+
+        function handleAnswer(idx) {
+            if (currentQuestion === 2 && idx === 0) {
+                const btn = document.getElementById('opt-0');
+                let newX, newY;
+                do { newX = Math.random() * 260 - 130; newY = Math.random() * 320 - 160; }
+                while (Math.abs(newY - 130) < 70 && Math.abs(newX) < 160);
+                btn.style.transform = `translate(${newX}px, ${newY}px)`;
+                return;
+            }
+
+            if (idx === questions[currentQuestion].correct) {
+                playSfx(sfxConfetti);
+                confetti({ particleCount: 40, spread: 60, origin: { y: 0.8 } });
+                if (currentQuestion === 2) {
+                    document.getElementById('modal-ganteng').classList.remove('hidden');
+                } else {
+                    currentQuestion++; setTimeout(renderQuiz, 600);
+                }
+            } else {
+                lives--; document.getElementById('lives-display').innerText = "❤️".repeat(lives);
+                if (lives <= 0) { openModal("Yahhh! 🥺", "Loh kok gabisa kebuka yaa, coba tap lagi", "💔", "Ulangi Kuis", () => location.reload()); }
+                else { openModal("Salah! ❌", "Coba diingat-ingat lagi yuk...", "🙄"); }
+            }
+        }
+
+        function takeKey() {
+            playSfx(sfxUnlock);
+            document.getElementById('modal-ganteng').classList.add('hidden');
+            openModal("Nah sekarang kamu udah punya kunci! 🔑", "coba tap tap lagi 🎁", "🗝️", "Kembali ke Kado");
+            setTimeout(() => { changeSection('section-gift'); prepareGiftUnlock(); }, 500);
+        }
+
+        function prepareGiftUnlock() {
+            const gift = document.getElementById('gift-box');
+            document.getElementById('gift-text').innerText = "Kunci terpasang! Tap kadonya 🎁";
+            gift.onclick = () => {
+                playSfx(sfxUnlock); gift.innerText = "🎁✨";
+                playSfx(sfxConfetti);
+                confetti({ particleCount: 150, spread: 100 });
+                setTimeout(() => { changeSection('section-story'); renderGallery(); }, 1200);
+            };
+        }
+
+        function renderGallery() {
+            const grid = document.getElementById('gallery-grid');
+            stories.forEach((s, i) => {
+                const div = document.createElement('div');
+                div.className = "flip-card";
+                div.innerHTML = `<div class="flip-card-inner h-full w-full" onclick="flip(${i}, this)">
+                    <div class="flip-card-front"><img src="${s.img}" class="w-full h-full object-cover"></div>
+                    <div class="flip-card-back shadow-inner"><p class="text-sm font-medium text-center italic">"${s.text}"</p></div>
+                </div>`;
+                grid.appendChild(div);
+            });
+        }
+
+        // LOGIKA BARU: AUTO FLIP BACK
+        function flip(i, el) {
+            const cardParent = el.parentElement;
+
+            if (!cardParent.classList.contains('flipped')) {
+                playSfx(sfxPop);
+                cardParent.classList.add('flipped');
+                viewedPhotos.add(i);
+
+                // Jika ada kartu lain yang sedang terbuka, balikkan setelah 2 detik
+                if (lastFlippedCard && lastFlippedCard !== cardParent) {
+                    const cardToClose = lastFlippedCard;
+                    setTimeout(() => {
+                        cardToClose.classList.remove('flipped');
+                    }, 2000); // 2 Detik
+                }
+
+                lastFlippedCard = cardParent;
+
+                if (viewedPhotos.size === stories.length) {
+                    setTimeout(() => {
+                        document.getElementById('btn-to-letter').classList.remove('hidden');
+                        document.getElementById('btn-to-letter').classList.add('animate-bounce');
+                    }, 800);
+                }
+            } else {
+                // Jika kartu yang sama diklik lagi, balikkan secara manual
+                cardParent.classList.remove('flipped');
+                if (lastFlippedCard === cardParent) lastFlippedCard = null;
+            }
+        }
+
+        function startTyping() {
+            const target = document.getElementById('letter-text');
+            let i = 0;
+            function type() {
+                if (i < longLetter.length) { target.innerHTML += longLetter.charAt(i); i++; setTimeout(type, 40); }
+                else { document.getElementById('btn-to-final').classList.replace('opacity-0', 'opacity-100'); }
+            }
+            type();
+        }
+
+        function startCounter() {
+            setInterval(() => {
+                const diff = new Date() - annivDate;
+                document.getElementById('days-count').innerText = Math.floor(diff / (1000 * 60 * 60 * 24));
+                document.getElementById('hours-count').innerText = Math.floor((diff / (1000 * 60 * 60)) % 24);
+                document.getElementById('seconds-count').innerText = Math.floor((diff / 1000) % 60);
+            }, 1000);
+            initFloatingPhotos();
+        }
+
+        function initFloatingPhotos() {
+            const container = document.getElementById('floating-container');
+            const photoPool = ['img/foto-1.jpg', 'img/foto-2.jpeg', 'img/foto-3.jpeg', 'img/foto-4.jpeg', 'img/foto-5.jpeg', 'img/foto-6.jpeg'];
+            let lane = 0;
+            setInterval(() => {
+                const img = document.createElement('img');
+                img.src = photoPool[Math.floor(Math.random() * photoPool.length)];
+                img.className = 'floating-photo';
+                img.style.left = ((lane * 33) + Math.random() * 15) + '%';
+                const dur = 8 + Math.random() * 5;
+                img.style.animationDuration = dur + 's';
+                container.appendChild(img);
+                lane = (lane + 1) % 3;
+                setTimeout(() => img.remove(), dur * 1000);
+            }, 2000);
+        }
+
+        function sparkleLove() {
+            playSfx(sfxConfetti);
+            var end = Date.now() + (3 * 1000);
+            (function frame() {
+                confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#ff0000', '#ff69b4'] });
+                confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#ff0000', '#ff69b4'] });
+                if (Date.now() < end) requestAnimationFrame(frame);
+            }());
+        }
+    </script>
+</body>
+
+</html>
